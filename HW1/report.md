@@ -14,6 +14,7 @@
 以下為主要程式碼：
 遞迴:
 
+```cpp
 #include <iostream>
 using namespace std;
 
@@ -44,6 +45,8 @@ int main() {
 
 }
 非遞迴:
+
+```cpp
 #include <iostream>
 #include <stack>
 using namespace std;
@@ -152,6 +155,7 @@ g++ funtion.cpp -o ack
 
 **以下為主要程式碼：**
 
+```cpp
 #include <iostream>
 using namespace std;
 
