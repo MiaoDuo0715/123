@@ -1,6 +1,6 @@
 # 41141134
 
-作業一
+#作業一
 **Problem1**
 ## 解題說明
 
@@ -134,7 +134,7 @@ g++ funtion.cpp -o ack
 
 
 
-**Problem2**
+#**Problem2**
 
 ## 解題說明
 
