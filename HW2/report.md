@@ -1,29 +1,28 @@
 # 41141134
 
-作業二
+作業一
 ## 解題說明
 
-本題要求完成一個多項式相加的程式，並且要過載 << 和 >> 運算子來實作多項式的輸入與輸出功能。
+本題要求實作多項式類別 Polynomial 的 ADT，還要提供多項式的輸入、輸出、加法、乘法以及數值計算功能。
+並且需要重載 >> 和 << 運算子以方便多項式的輸入與輸出
+
+
 ### 解題策略
 
-先輸入最大次方，用陣列紀錄每個次方的係數，兩個多項式相加後依次輸出非 0 結果。
+使用一維陣列存放多項式係數，索引值代表次方，陣列元素值代表該次方的係數。
 
-1.輸入最高次方數
+加法：對應次方係數直接相加
+乘法：使用雙迴圈遍歷兩個多項式，將係數相乘並加到 i+j 次方的位置
 
-   先請使用者輸入支援的最大次方數，用來建立陣列 
+將多項式操作封裝成 Polynomial 類別，包含：
 
-2.準備三個陣列
+   建構子（建立零多項式）
 
-   arr1[]：儲存第一個多項式
+   運算子重載 >> 與 <<（輸入、輸出）
 
-   arr2[]：儲存第二個多項式。
+   運算子重載 + 與 *（加法、乘法）
 
-   arr3[]：儲存兩多項式相加的結果
-
-3.將兩個多項式相加
-
-   用一個迴圈從 0 到 一開始準備的Max，將arr1[i] + arr2[i] 存到 arr3[i]
-
+   Eval() 方法（代入數值計算）
 
 
 ## 程式實作
@@ -31,59 +30,103 @@
 以下為主要程式碼：
 
 ```cpp
+
 #include <iostream>
+#include <vector>
+#include <cmath>
 using namespace std;
 
-int main() {
-    int Max;
-    cout << "請輸入你要支援的最高次方：";
-    cin >> Max;
-
-    int* arr1 = new int[Max + 1]();
-    int* arr2 = new int[Max + 1]();
-    int* arr3 = new int[Max + 1]();
-
-    int C;
-
- 
-    cout << "請輸入第一個多項式的項數：";
-    cin >> C;
-
-    cout << "請輸入 " << C << " 組（係數 次數）：\n";
-    for (int i = 0; i < C; i++) {
-        int coef, exp;
-        cin >> coef >> exp;
-        arr1[exp] += coef;
+class Polynomial {
+private:
+    vector<int> coef; 
+public:
+    Polynomial(int Max = 0) {
+        coef.resize(Max + 1, 0);
     }
 
-    cout << "請輸入第二個多項式的項數：";
-    cin >> C;
-
-    cout << "請輸入 " << C << " 組（係數 次數）：\n";
-    for (int i = 0; i < C; i++) {
-        int coef, exp;
-        cin >> coef >> exp;
-        arr2[exp] += coef;
-    }
-
-    for (int i = 0; i <= Max; ++i) {
-        arr3[i] = arr1[i] + arr2[i];
-    }
-
-    bool first = true;
-    for (int i = Max; i >= 0; --i) {
-        if (arr3[i] != 0) {
-            if (!first) cout << " + ";
-            cout << arr3[i] << "x^" << i;
-            first = false;
+    friend istream& operator>>(istream& in, Polynomial& p) {
+        int terms;
+        cout << "輸入多項式的項數";
+        in >> terms;
+        cout << "請輸入 " << terms << " 組（係數 次數）：\n";
+        for (int i = 0; i < terms; i++) {
+            int c, e;
+            in >> c >> e;
+            if (e >= p.coef.size()) p.coef.resize(e + 1, 0);
+            p.coef[e] += c;
         }
+        return in;
     }
-    if (first) cout << "0"; 
-    cout << endl;
 
-    delete[] arr1;
-    delete[] arr2;
-    delete[] arr3;
+    friend ostream& operator<<(ostream& out, const Polynomial& p) {
+        bool first = true;
+        for (int i = p.coef.size() - 1; i >= 0; i--) {
+            if (p.coef[i] != 0) {
+                if (!first) out << " + ";
+                out << p.coef[i] << "x^" << i;
+                first = false;
+            }
+        }
+        if (first) out << "0";
+        return out;
+    }
+
+    Polynomial operator+(const Polynomial& other) const {
+        int maxDeg = max(coef.size(), other.coef.size());
+        Polynomial result(maxDeg - 1);
+        for (int i = 0; i < maxDeg; i++) {
+            int a = (i < coef.size()) ? coef[i] : 0;
+            int b = (i < other.coef.size()) ? other.coef[i] : 0;
+            result.coef[i] = a + b;
+        }
+        return result;
+    }
+
+    Polynomial operator*(const Polynomial& other) const {
+        int newDeg = (coef.size() - 1) + (other.coef.size() - 1);
+        Polynomial result(newDeg);
+        for (int i = 0; i < coef.size(); i++) {
+            for (int j = 0; j < other.coef.size(); j++) {
+                result.coef[i + j] += coef[i] * other.coef[j];
+            }
+        }
+        return result;
+    }
+
+    float Eval(float x) const {
+        float sum = 0;
+        for (int i = 0; i < coef.size(); i++) {
+            if (coef[i] != 0) {
+                sum += coef[i] * pow(x, i);
+            }
+        }
+        return sum;
+    }
+};
+
+int main() {
+    Polynomial arr1, arr2;
+
+    cout << "輸入第一個多項式:\n";
+    cin >> arr1;
+
+    cout << "輸入第二個多項式:\n";
+    cin >> arr2;
+
+    cout << "\n第一個多項式: " << arr1 << endl;
+    cout << "第二個多項式: " << arr2 << endl;
+
+    Polynomial sum = arr1 + arr2;
+    Polynomial P = arr1 * arr2;
+
+    cout << "\n加法結果: " << sum << endl;
+    cout << "乘法結果: " << P << endl;
+
+    float x;
+    cout << "\n輸入要代入的 x 值：";
+    cin >> x;
+    cout << "p1(" << x << ") = " << arr1.Eval(x) << endl;
+    cout << "p2(" << x << ") = " << arr2.Eval(x) << endl;
 
     return 0;
 }
@@ -91,17 +134,18 @@ int main() {
 ```
 
 ## 效能分析
-
-時間複雜度：程式的時間複雜度為 O(n)
+加法時間複雜度：程式的時間複雜度為 O(n)
+乘法時間複雜度：程式的時間複雜度為 O(n^2)
 空間複雜度：空間複雜度為 O(n)
 ## 測試與驗證
 
  
-| 測試案例 | 輸入多項式1  | 輸入多項式2   |                 預期輸出               |                   實際輸出              |
-|----------|--------------|---------------|----------------------------------------| ----------------------------------------|
-| 測試一   | 3 2 2 1 1 0  | 2 2 30 0      |5x^2 + 2x^1 + 31x^0                     | 5x^2 + 2x^1 + 31x^0                     |
-| 測試二   | 4 3 3 2 2 1  | 5 3 4 2 1 0   |9x^3 + 7x^2 + 2x^1 + 1x^0               | 9x^3 + 7x^2 + 2x^1 + 1x^0               |
-| 測試三   | 5 5 2 2 1 0  | 4 4 2 3 1 1   |5x^5 + 4x^4 + 2x^3 + 2x^2 + 1x^1 + 1x^0 | 5x^5 + 4x^4 + 2x^3 + 2x^2 + 1x^1 + 1x^0 |  
+| 測試案例 | 輸入多項式1        | 輸入多項式2       | 加法結果                                   | 乘法結果                                                                    代入值 (x=2)                           |
+|----------|-------------------|-------------------|--------------------------------------------|-----------------------------------------------------------------|----------------------------------------|
+| 測試一   | 3 2 2 1 1 0       | 2 2 30 0          | 5x^2 + 2x^1 + 31x^0                        | 6x^4 + 4x^3 + 93x^2 + 60x^1 + 30x^0                             | p1(2) = 15, p2(2) = 38                 |
+| 測試二   | 4 3 3 2 2 1       | 5 3 4 2 1 0       | 9x^3 + 7x^2 + 2x^1 + 1x^0                  | 20x^6 + 31x^5 + 22x^4 + 13x^3 + 6x^2 + 2x^1                     | p1(2) = 54, p2(2) = 57                 |
+| 測試三   | 5 5 2 2 1 0       | 4 4 2 3 1 1       | 5x^5 + 4x^4 + 2x^3 + 2x^2 + 1x^1 + 1x^0    | 20x^9 + 8x^8 + 18x^7 + 8x^6 + 9x^5 + 6x^4 + 4x^3 + 1x^2 + 1x^1  | p1(2) = 165, p2(2) = 105               |
+ 
 
 
 ### 編譯與執行指令
@@ -110,27 +154,32 @@ g++ -o HW2.cpp
 
 ### 結論
 
-這個程式成功實現了兩個多項式的加法運算，使用陣列以多項式的次方作為索引來儲存係數，操作簡單且直觀。
-能有效地處理指定最大次方範圍內的多項式加法，並正確輸出結果。
-但程式在實用性有進步空間
+程式可以正確完成兩個多項式的輸入、加法、乘法以及代入計算。
+使用陣列讓多項式的次方作為索引來儲存係數，讓運算方式簡單一點。
+不過在格式輸出和使用方便性上還有改進空間。
 
 
 
 ## 申論及開發報告
 
-此程式的優點有:
-1.結構簡單清晰:
-  使用陣列儲存係數，以次方為索引，方便加法運算。
+程式的優點有：
 
-2.支援任意多項式
-  只要設定最大次方，程式能處理該範圍內的多項式。
+結構簡單清晰
+使用陣列儲存係數，以次方為索引，方便加法與乘法運算。
 
-3.避免重複輸入錯誤
-  多項式的同次方係數相加，利用 arr1[exp] += coef，可累加同次方多個項。
+避免重複輸入錯誤
+相同次方的項會自動累加，例如輸入兩個 2x 2次方項時，程式會幫你相加。
 
-可改進的地方:
-1.最大次方需預先指定:
-  如果輸入的次方超過 Max，會導致越界或錯誤，沒有檢查輸入次方是否合理。
-2.只支援加法
-  程式只做多項式加法，若想做減法、乘法、除法需要額外寫程式。
+可改進的地方：
+
+輸出格式可更美觀
+目前負號與正號的顯示不夠漂亮，可能會出現 + -3x^2 這種情況。
+
+最大次方需更彈性
+雖然現在會自動擴充，但可以加上檢查機制，避免輸入不合理的次方。
+
+可加入更多運算
+目前支援加法、乘法和求值，未來可以加上減法、除法、多項式微分等功能。
+
+
 
