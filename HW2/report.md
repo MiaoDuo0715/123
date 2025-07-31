@@ -29,6 +29,8 @@
 ## 程式實作
 
 以下為主要程式碼：
+
+```cpp
 #include <iostream>
 using namespace std;
 
